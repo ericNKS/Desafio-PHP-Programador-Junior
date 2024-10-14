@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: DockerFile
+    container_name: php-container
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../src:/var/www/
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+  nginx:
+    image: nginx:1.25.1-alpine-slim
+    container_name: nginx-container
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ../src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - mynetwork
+  db:
+    image: mysql:8.0
+    container_name: mysql-container
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - ./db:/var/lib/mysql
+      - ../src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-container
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8081:80"
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
