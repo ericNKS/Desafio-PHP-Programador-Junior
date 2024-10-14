@@ -3,6 +3,9 @@ APP_NAME=desafio
 install:
 	docker-compose exec app composer install
 
+env:
+	cp .env.exemple .env
+
 up:
 	docker-compose up -d
 

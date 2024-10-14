@@ -2,8 +2,6 @@
 
 namespace App\Database;
 
-use App\Controller\Response;
-
 class Connection
 {
     private $connection;
@@ -12,16 +10,15 @@ class Connection
         $dbUser = getenv('DB_USER');
         $dbPass = getenv('DB_PASS');
         $dbName = getenv('DB_NAME');
-
         try {
             $this->connection = new \mysqli($dbHost, $dbUser, $dbPass, $dbName);
 
             if ($this->connection->connect_error) {
-                Response::JSON(['Connection failed' => $this->connection ->connect_error], 500);
+                throw new \Exception('Connection failed'. $this->connection->connect_error);
                 return;
             }
         } catch (\Throwable $th) {
-            Response::JSON(['error' => $th->getMessage()], 500);
+            throw $th;
         }
     }
     public static function conn(){
